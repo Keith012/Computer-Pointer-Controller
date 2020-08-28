@@ -26,7 +26,7 @@ class FaceDetection:
 
         try:
             self.core = IECore
-            self.model = IENetwork(self.model_structure, self.model_weights)
+            self.model = self.core.read_network(self.model_structure, self.model_weights)
         except Exception as e:
             raise ValueError("Network could not be initialized, Is this the right path?")
         self.input_name = next(iter(self.model.inputs))
@@ -37,7 +37,7 @@ class FaceDetection:
     def load_model(self):
         #Load the model
         self.core = IECore()
-        self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
+        self.net = self.core.read_network(network=self.model, device_name=self.device, num_requests=1)
 
         #Add extensions
         if cpu_extension and "CPU" in device:
