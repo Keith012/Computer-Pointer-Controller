@@ -37,7 +37,7 @@ class FaceDetection:
     def load_model(self):
         #Load the model
         self.core = IECore()
-        self.net = self.core.read_network(network=self.model, device_name=self.device, num_requests=1)
+        self.model = self.core.read_network(self.model_structure, self.model_weights)
 
         #Add extensions
         if cpu_extension and "CPU" in device:
@@ -48,6 +48,8 @@ class FaceDetection:
         for l in layers:
             if l not in supported_layers:
                 raise ValueError("Unsupported layers, add more extensions")
+                
+        self.net = self.core.read_network(network=self.model, device_name=self.device, num_requests=1)
 
     def predict(self, image):
         input_name = self.input_name
