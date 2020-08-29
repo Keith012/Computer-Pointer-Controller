@@ -49,14 +49,14 @@ def build_argparser():
                              "hp for Head Pose Estimation, ge for Gaze Estimation.")
     return parser
 
-def check_input(inputs):
-    if inputs.endswith('.jpg') or inputs.endswith('.png') or inputsendswith('.bmp'):
+def check_input(stream):
+    if stream.endswith('.jpg') or stream.endswith('.png') or stream.endswith('.bmp'):
         input_feed = 'image'
 
-    elif inputs == 'CAM':
+    elif stream == 'CAM':
         input_feed = 'cam'
 
-    elif inputs.endswith('.mp4'):
+    elif stream.endswith('.mp4'):
         input_feed = 'video'
 
     else:
@@ -69,26 +69,26 @@ def infer_on_stream(args):
     #Initialize models
 
     face_detection = FaceDetection(args.face_detection_model, args.device, args.prob_threshold, args.cpu_extension)
-    start_time = time.time()
+    #start_time = time.time()
     face_detection.load_model()
 
     facial_landmarks_detection = FacialLandmarksDetection(args.facial_landmarks_model, args.device, args.cpu_extension)
-    start_time = time.time()
+    #start_time = time.time()
     facial_landmarks_detection.load_model()
 
     head_pose_estimation = HeadPoseEstimation(args.head_pose_model, args.device, args.cpu_extension)
-    start_time = time.time()
+    #start_time = time.time()
     head_pose_estimation.load_model()
 
     gaze_estimation = GazeEstimation(args.gaze_estimation_model, args.device, args.cpu_extension)
-    start_time = time.time()
+    #start_time = time.time()
     gaze_estimation.load_model()
 
     mouse_controller = MouseController('medium', 'fast')
 
     input_feed = check_input(args.input)
-    feeder =InputFeeder(input_feed, input_file = args.input)
-    feed.load_data()
+    feeder = InputFeeder(input_feed = input_feed, input_file = args.input)
+    feeder.load_data()
 
     frame_count = 0
     f_detection = 0
@@ -97,7 +97,7 @@ def infer_on_stream(args):
     ge_detection = 0
 
 
-    for ret, frame in feed.next_batch():
+    for ret, frame in feeder.next_batch():
         if not ret:
             break
         key_pressed = cv2.waitKey(60)
@@ -146,7 +146,7 @@ def infer_on_stream(args):
                 cv2.arrowedLine(frame_preview, (eye_coord[0][0], eye_coord[0][1]), int(eye_coord[0][2] + arrow_x), int(eye_coord[0][3] + arrow_y), (0, 255, 0), 2)
                 cv2.arrowedLine(frame_preview, (eye_coord[0][0], eye_coord[0][1]), int(eye_coord[0][2] + arrow_x), int(eye_coord[0][3] + arrow_y), (0, 255, 0), 2)
 
-            if len(frame_out) != 0:
+            if len(frame_preview) != 0:
                 img_cap = np.hstack((cv2.resize(frame, (500, 500)), cv2.resize(frame_preview, (500, 500))))
             else:
                 img_cap = cv2.resize(frame, (500, 500))
