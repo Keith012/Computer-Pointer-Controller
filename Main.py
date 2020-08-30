@@ -2,6 +2,7 @@ import cv2
 import os
 import numpy as np
 import logging as log
+import sys
 import math
 import time
 from argparse import ArgumentParser
@@ -54,10 +55,10 @@ def check_input(stream):
         input_feed = 'image'
 
     elif stream == 'CAM':
-        input_feed = 'cam'
+        input_feed = InputFeeder("cam")
 
     elif stream.endswith('.mp4'):
-        input_feed = 'video'
+        input_feed = InputFeeder("video", inputs)
 
     else:
         log.error('Inputs feed not correct')
@@ -87,7 +88,7 @@ def infer_on_stream(args):
     mouse_controller = MouseController('medium', 'fast')
 
     input_feed = check_input(args.input)
-    feeder = InputFeeder(input_feed = input_feed, input_file = args.input)
+    feeder =InputFeeder(input_feed=input_feed, input_file = args.input)
     feeder.load_data()
 
     frame_count = 0
