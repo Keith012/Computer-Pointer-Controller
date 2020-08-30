@@ -40,7 +40,7 @@ class FaceDetection:
         self.model = self.core.read_network(self.model_structure, self.model_weights)
 
         #Add extensions
-        if self.extension. and "CPU" in device:
+        if self.extensions and "CPU" in device:
             self.core.add_extension(self.extensions, self.device)
 
         supported_layers= self.core.query_network(network=self.model, device_name=self.device)
