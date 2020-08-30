@@ -38,7 +38,7 @@ class HeadPoseEstimation:
         self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
 
         # Add extensions
-        if cpu_extension and "CPU" in device:
+        if self.extensions and "CPU" in device:
             self.core.add_extension(self.extensions, self.device)
 
         supported_layers = self.core.query_network(network=self.model, device_name=self.device)
