@@ -49,7 +49,7 @@ class FaceDetection:
             if l not in supported_layers:
                 raise ValueError("Unsupported layers, add more extensions")
                 
-        self.net = self.core.read_network(network=self.model, device_name=self.device, num_requests=1)
+        #self.net = self.core.read_network(network=self.model, device_name=self.device, num_requests=1)
 
     def predict(self, image):
         input_name = self.input_name
