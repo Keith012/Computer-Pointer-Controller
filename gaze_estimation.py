@@ -17,10 +17,15 @@ class GazeEstimation:
         self.model_weights = model_name + '.bin'
         self.model_structure = model_name + '.xml'
         self.device = device
+        self.core = None
+        self.model = None
+        self.network = None
+        self.net = None
         self.extensions = extensions
 
         try:
-            self.model = IENetwork(self.model_structure, self.model_weights)
+            self.core = IECore()
+            self.model = self.core.read_network(self.model_structure, self.model_weights)
         except Exception as e:
             raise ValueError("Network could not be initialized, Is this the right path?")
         self.input_name = next(iter(self.model.inputs))
@@ -37,14 +42,16 @@ class GazeEstimation:
         '''
         # Load the model
         self.core = IECore()
+        self.network = self.core.read_network(self.model_structure, self.model_weights)
+
         self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
 
         # Add extensions
         if self.extensions and "CPU" in device:
             self.core.add_extension(self.extensions, self.device)
 
-        supported_layers = self.core.query_network(network=self.model, device_name=self.device)
-        layers = self.model.layers.keys()
+        supported_layers = self.core.query_network(network=self.network, device_name=self.device)
+        layers = self.network.layers.keys()
         for l in layers:
             if l not in supported_layers:
                 raise ValueError("Unsupported layers, add more extensions")
@@ -54,8 +61,8 @@ class GazeEstimation:
         TODO: You will need to complete this method.
         This method is meant for running predictions on the input image.
         '''
-        proc_left_eye = self.preprocess_input(left_eye, re)
-        proc_right_eye = self.preprocess_input(right_eye, le)
+        proc_left_eye = self.preprocess_input(left_eye, self.input_shape)
+        proc_right_eye = self.preprocess_input(right_eye, self.input_shape)
         infer_request = self.net.start_async(request_id=0, inputs={'image_left':proc_left_eye, 'image_right':proc_right_eye, 'head_pose_angle':head_position})
         infer_status = infer_request.wait()
         if infer_status == 0:

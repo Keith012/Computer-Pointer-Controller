@@ -21,11 +21,14 @@ class FaceDetection:
         self.extensions = extensions
         self.threshold = threshold
         self.device = device
+        #self.input_name = None
+        #self.output_shape = None
         self.core = None
+        self.network = None
         self.net = None
 
         try:
-            self.core = IECore
+            self.core = IECore()
             self.model = self.core.read_network(self.model_structure, self.model_weights)
         except Exception as e:
             raise ValueError("Network could not be initialized, Is this the right path?")
@@ -33,23 +36,24 @@ class FaceDetection:
         self.input_shape = self.model.inputs[self.input_name].shape
         self.output_name = next(iter(self.model.outputs))
         self.output_shape = self.model.outputs[self.output_name].shape
+        type(self.model.inputs)
 
     def load_model(self):
         #Load the model
         self.core = IECore()
-        self.model = self.core.read_network(self.model_structure, self.model_weights)
+        self.network = self.core.read_network(self.model_structure, self.model_weights)
+
+        self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
 
         #Add extensions
         if self.extensions and "CPU" in device:
             self.core.add_extension(self.extensions, self.device)
 
-        supported_layers= self.core.query_network(network=self.model, device_name=self.device)
-        layers = self.model.layers.keys()
+        supported_layers= self.core.query_network(network=self.network, device_name=self.device)
+        layers = self.network.layers.keys()
         for l in layers:
             if l not in supported_layers:
                 raise ValueError("Unsupported layers, add more extensions")
-                
-        #self.net = self.core.read_network(network=self.model, device_name=self.device, num_requests=1)
 
     def predict(self, image):
         input_name = self.input_name

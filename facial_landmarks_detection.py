@@ -16,10 +16,16 @@ class FacialLandmarksDetection:
         self.model_weights = model_name + '.bin'
         self.model_structure = model_name + '.xml'
         self.device = device
+        #self.input_name = None
+        #self.output_shape = None
+        self.core = None
+        self.network = None
+        self.net = None
         self.extensions = extensions
 
         try:
-            self.model = IENetwork(self.model_structure, self.model_weights)
+            self.core = IECore()
+            self.model = self.core.read_network(self.model_structure, self.model_weights)
         except Exception as e:
             raise ValueError("Network could not be initialized, Is this the right path?")
         self.input_name = next(iter(self.model.inputs))
@@ -35,14 +41,16 @@ class FacialLandmarksDetection:
         '''
         # Load the model
         self.core = IECore()
+        self.network = self.core.read_network(self.model_structure, self.model_weights)
+
         self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
 
         # Add extensions
         if self.extensions and "CPU" in device:
             self.core.add_extension(self.extensions, self.device)
 
-        supported_layers = self.core.query_network(network=self.model, device_name=self.device)
-        layers = self.model.layers.keys()
+        supported_layers = self.core.query_network(network=self.network, device_name=self.device)
+        layers = self.network.layers.keys()
         for l in layers:
             if l not in supported_layers:
                 raise ValueError("Unsupported layers, add more extensions")
