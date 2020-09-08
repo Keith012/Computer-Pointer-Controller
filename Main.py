@@ -50,52 +50,60 @@ def build_argparser():
                              "hp for Head Pose Estimation, ge for Gaze Estimation.")
     return parser
 
-def check_input(stream):
-    if stream.endswith('.jpg') or stream.endswith('.png') or stream.endswith('.bmp'):
-        input_feed = 'image'
+#def check_input(stream):
 
-    elif stream == 'CAM':
-        input_feed = InputFeeder("cam")
 
-    elif stream.endswith('.mp4'):
-        input_feed = InputFeeder("video", inputs)
 
-    else:
-        log.error('Inputs feed not correct')
-        sys.exit()
-    return input_feed
 
 def infer_on_stream(args):
 
-    #Initialize models
+    logger = log.getLogger()
+    input_feed = args.input
 
-    face_detection = FaceDetection(args.face_detection_model, args.device, args.prob_threshold, args.cpu_extension)
-    #start_time = time.time()
-    face_detection.load_model()
+    if input_feed == 'CAM':
+        input_feeder = InputFeeder(input_feed.lower())
 
-    facial_landmarks_detection = FacialLandmarksDetection(args.facial_landmarks_model, args.device, args.cpu_extension)
-    #start_time = time.time()
-    facial_landmarks_detection.load_model()
-
-    head_pose_estimation = HeadPoseEstimation(args.head_pose_model, args.device, args.cpu_extension)
-    #start_time = time.time()
-    head_pose_estimation.load_model()
-
-    gaze_estimation = GazeEstimation(args.gaze_estimation_model, args.device, args.cpu_extension)
-    #start_time = time.time()
-    gaze_estimation.load_model()
+    else:
+        if not os.path.isfile(input_feed):
+            logger.error("Unable to find video file")
+            exit(1)
+        else:
+            input_feeder = InputFeeder('video', input_feed)
 
     mouse_controller = MouseController('medium', 'fast')
+    input_feeder.load_data()
 
-    input_feed = check_input(args.input)
-    feeder =InputFeeder(input_feed=input_feed, input_file = args.input)
-    feeder.load_data()
+
+    #Initialize models
+    face_detection = FaceDetection(args.face_detection_model, args.device, args.prob_threshold, args.cpu_extension)
+    facial_landmarks_detection = FacialLandmarksDetection(args.facial_landmarks_model, args.device, args.cpu_extension)
+    head_pose_estimation = HeadPoseEstimation(args.head_pose_model, args.device, args.cpu_extension)
+    gaze_estimation = GazeEstimation(args.gaze_estimation_model, args.device, args.cpu_extension)
+
+    start_time = time.time()
+
+    #Loading Models
+    face_detection.load_model()
+    facial_landmarks_detection.load_model()
+    head_pose_estimation.load_model()
+    gaze_estimation.load_model()
+
+    end_time = time.time() - start_time
+
+    #mouse_controller = MouseController('medium', 'fast')
+
+    #Handle input stream
+    #input_feed = check_input(args.input)
+    #feeder = InputFeeder(input_feed=input_feed, input_file = args.input)
+    #feeder.load_data()
 
     frame_count = 0
     f_detection = 0
     l_detection = 0
     hp_detection = 0
     ge_detection = 0
+
+    frame_out = args.frame_out
 
 
     for ret, frame in feeder.next_batch():
@@ -105,7 +113,7 @@ def infer_on_stream(args):
 
         frame_count += 1
         start_time = time.time()
-        face_coords, face = face_detection.predict(frame.copy())
+        face_coords,face = face_detection.predict(frame.copy())
         f_detection += time.time() - start_time
 
         if len(face_coords) == 0:
@@ -166,7 +174,7 @@ def infer_on_stream(args):
 
     logger.error("Stream ended...")
     cv2.destroyAllWindows()
-    feeder.close()
+    input_feeder.close()
 
 def main():
 
