@@ -1,20 +1,14 @@
-'''
-This is a sample class for a model. You may choose to use it as-is or make any changes to it.
-This has been provided just to give you an idea of how to structure your model class.
-'''
 
 import os
 import numpy as np
 import cv2
 import logging as log
+import argparse
 import time
 import sys
 from openvino.inference_engine import IENetwork, IECore
 
 class FaceDetection:
-    '''
-    Class for the Face Detection Model.
-    '''
     def __init__(self, model_name, device='CPU', threshold=0.60, extensions=None):
         self.model_weights = model_name + '.bin'
         self.model_structure = model_name + '.xml'
@@ -23,34 +17,32 @@ class FaceDetection:
         self.device = device
         #self.input_name = None
         #self.output_shape = None
-        self.core = None
-        self.network = None
-        self.net = None
+        #self.core = None
+        #self.network = None
+        #self.net = None
 
         try:
-            self.core = IECore()
-            self.model = self.core.read_network(self.model_structure, self.model_weights)
+            #self.core = IECore()
+            self.model = IENetwork(self.model_structure, self.model_weights)
         except Exception as e:
             raise ValueError("Network could not be initialized, Is this the right path?")
         self.input_name = next(iter(self.model.inputs))
         self.input_shape = self.model.inputs[self.input_name].shape
         self.output_name = next(iter(self.model.outputs))
         self.output_shape = self.model.outputs[self.output_name].shape
-        type(self.model.inputs)
+        #type(self.model.inputs)
 
     def load_model(self):
         #Load the model
         self.core = IECore()
-        self.network = self.core.read_network(self.model_structure, self.model_weights)
-
-        self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
+        self.network = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
 
         #Add extensions
         if self.extensions and "CPU" in device:
             self.core.add_extension(self.extensions, self.device)
 
-        supported_layers= self.core.query_network(network=self.network, device_name=self.device)
-        layers = self.network.layers.keys()
+        supported_layers= self.core.query_network(network=self.model, device_name=self.device)
+        layers = self.model.layers.keys()
         for l in layers:
             if l not in supported_layers:
                 raise ValueError("Unsupported layers, add more extensions")
@@ -63,7 +55,11 @@ class FaceDetection:
         infer_status = infer_request.wait()
         if infer_status == 0:
             output = infer_request.outputs[self.output_name]
-            return self.draw.outputs(output, image)
+            face_coords = self.preprocess_output(output, image)
+            image = self.draw_outputs(image, face_coords)
+
+        return face_coords, image
+
 
     def check_model(self):
         pass

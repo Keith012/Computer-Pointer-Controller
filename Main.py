@@ -127,32 +127,32 @@ def infer_on_stream(args):
         ge_detection += time.time() - start_time
 
         if frame_out:
-            frame_preview = frame.copy()
+            f_preview = frame.copy()
             if 'fd' in frame_out:
-                frame_preview = face.copy()
-                cv2.rectangle(frame_preview, (face_coord[0], face_coord[1]),(face_coord[2], face_coord[3]), (0, 255, 0), 2)
+                f_preview = face.copy()
+                cv2.rectangle(f_preview, (face_coord[0], face_coord[1]),(face_coord[2], face_coord[3]), (0, 255, 0), 2)
             
             if 'fl' in frame_out:
-                frame_preview = face.copy()
-                cv2.rectangle(frame_preview, (eye_coord[0][0], eye_coord[0][1]), (eye_coord[0][2], eye_coord[0][3]), (180, 0, 180))
-                cv2.rectangle(frame_preview, (eye_coord[1][0], eye_coord[1][1]), (eye_coord[1][2], eye_coord[1][3]), (180, 0, 180))
+                f_preview = face.copy()
+                cv2.rectangle(f_preview, (eye_coord[0][0], eye_coord[0][1]), (eye_coord[0][2], eye_coord[0][3]), (180, 0, 180))
+                cv2.rectangle(f_preview, (eye_coord[1][0], eye_coord[1][1]), (eye_coord[1][2], eye_coord[1][3]), (180, 0, 180))
 
             if 'hp' in frame_out:
-                cv2.putText(frame_preview,"Pose Angle: yaw:{:.2f} | pitch:{:.2f} | roll:{:.2f}".format(headpose_out[0],headpose_out[1],headpose_out[2]),(0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0), 1)
+                cv2.putText(f_preview,"Pose Angle: yaw:{:.2f} | pitch:{:.2f} | roll:{:.2f}".format(headpose_out[0],headpose_out[1],headpose_out[2]),(0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 0), 1)
 
             if 'ge' in frame_out:
                 arrow_x = gaze_vector[0] * 12
                 arrow_y = gaze_vector[1] * 12
 
-                cv2.arrowedLine(frame_preview, (eye_coord[0][0], eye_coord[0][1]), int(eye_coord[0][2] + arrow_x), int(eye_coord[0][3] + arrow_y), (0, 255, 0), 2)
-                cv2.arrowedLine(frame_preview, (eye_coord[0][0], eye_coord[0][1]), int(eye_coord[0][2] + arrow_x), int(eye_coord[0][3] + arrow_y), (0, 255, 0), 2)
+                cv2.arrowedLine(f_preview, (eye_coord[0][0], eye_coord[0][1]), int(eye_coord[0][2] + arrow_x), int(eye_coord[0][3] + arrow_y), (0, 255, 0), 2)
+                cv2.arrowedLine(f_preview, (eye_coord[0][0], eye_coord[0][1]), int(eye_coord[0][2] + arrow_x), int(eye_coord[0][3] + arrow_y), (0, 255, 0), 2)
 
-            if len(frame_preview) != 0:
-                img_cap = np.hstack((cv2.resize(frame, (500, 500)), cv2.resize(frame_preview, (500, 500))))
+            if len(f_preview) != 0:
+                img_cap = np.hstack((cv2.resize(frame, (700, 700)), cv2.resize(f_preview, (700, 700))))
             else:
-                img_cap = cv2.resize(frame, (500, 500))
+                img_cap = cv2.resize(frame, (700, 700))
 
-            cv2.imshow('Visualization', img_cap)
+            cv2.imshow('Screenview', img_cap)
             mouse_controller.move(mouse_coords[0], mouse_coords[1])
 
             if key_pressed == 27:

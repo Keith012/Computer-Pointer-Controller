@@ -16,16 +16,16 @@ class FacialLandmarksDetection:
         self.model_weights = model_name + '.bin'
         self.model_structure = model_name + '.xml'
         self.device = device
+        self.extensions = extensions
         #self.input_name = None
         #self.output_shape = None
-        self.core = None
-        self.network = None
-        self.net = None
-        self.extensions = extensions
+        #self.core = None
+        #self.network = None
+        #self.net = None
 
         try:
-            self.core = IECore()
-            self.model = self.core.read_network(self.model_structure, self.model_weights)
+            #self.core = IECore()
+            self.model = IENetwork(self.model_structure, self.model_weights)
         except Exception as e:
             raise ValueError("Network could not be initialized, Is this the right path?")
         self.input_name = next(iter(self.model.inputs))
@@ -41,16 +41,14 @@ class FacialLandmarksDetection:
         '''
         # Load the model
         self.core = IECore()
-        self.network = self.core.read_network(self.model_structure, self.model_weights)
-
-        self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
+        self.network = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)
 
         # Add extensions
         if self.extensions and "CPU" in device:
             self.core.add_extension(self.extensions, self.device)
 
-        supported_layers = self.core.query_network(network=self.network, device_name=self.device)
-        layers = self.network.layers.keys()
+        supported_layers = self.core.query_network(network=self.model, device_name=self.device)
+        layers = self.model.layers.keys()
         for l in layers:
             if l not in supported_layers:
                 raise ValueError("Unsupported layers, add more extensions")
@@ -109,7 +107,7 @@ class FacialLandmarksDetection:
         cv2.rectangle(image, (x_right_min, x_right_max), (y_right_min, y_right_max), (0,255,0), 2)
         right_eye = image[x_right_min:x_right_max, y_right_min:y_right_max]
 
-        #Calculate coordinates
+        #Calculate coordinates for the left and right eyes
         b_box = []
         outputs = outputs[self.output_name][0]
         x_left_eye = int(outputs[0] * width)
@@ -118,6 +116,4 @@ class FacialLandmarksDetection:
         y_right_eye = int(outputs[3] * height)
         b_box.append(x_left_eye, y_left_eye, x_right_eye, y_right_eye)
 
-        return left_eye, right_eye, b_box
-
-        return left_eye, right_eye
+        return image, left_eye, right_eye, b_box
