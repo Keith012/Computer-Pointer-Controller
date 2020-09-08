@@ -106,7 +106,7 @@ def infer_on_stream(args):
     frame_out = args.frame_out
 
 
-    for ret, frame in feeder.next_batch():
+    for ret, frame in input_feeder.next_batch():
         if not ret:
             break
         key_pressed = cv2.waitKey(60)
