@@ -24,7 +24,7 @@ class GazeEstimation:
         #self.net = None
 
         try:
-            3self.core = IECore()
+            self.core = IECore()
             self.model = IENetwork(self.model_structure, self.model_weights)
         except Exception as e:
             raise ValueError("Network could not be initialized, Is this the right path?")
