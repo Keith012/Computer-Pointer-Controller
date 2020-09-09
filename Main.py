@@ -61,14 +61,14 @@ def infer_on_stream(args):
     input_feed = args.input
 
     if input_feed == 'CAM':
-        input_feeder = InputFeeder(input_feed.lower())
+        input_feeder = InputFeeder('cam')
 
     else:
         if not os.path.isfile(input_feed):
             logger.error("Unable to find video file")
             exit(1)
         else:
-            input_feeder = InputFeeder('video', input_feed)
+          input_feeder = InputFeeder('video', input_feed)
 
     mouse_controller = MouseController('medium', 'fast')
     input_feeder.load_data()
