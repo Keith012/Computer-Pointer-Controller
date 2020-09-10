@@ -59,6 +59,7 @@ def infer_on_stream(args):
 
     logger = log.getLogger()
     input_feed = args.input
+    input_feeder = None
 
     if input_feed == 'CAM':
         input_feeder = InputFeeder('cam')
